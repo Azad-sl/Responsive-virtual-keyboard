@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* 样式保持不变 */
         :root {
             --bg-color: #121212;
             --card-bg: #1e1e1e;
@@ -274,8 +275,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>响应式虚拟键盘盲打练习</h1>
-            <p>点击按键或使用实体键盘进行练习</p>
+            <h1>响应式虚拟键盘</h1>
+            <p>使用实体键盘进行盲打练习</p>
         </div>
 
         <div class="card">
@@ -409,8 +410,8 @@
             let shiftPressed = false;
 
             // 音效 URL 与缓存
-            const mechanicalKeySoundUrl = '001.mp3';
-            const typeWriterSoundUrl = '002.mp3'; // 打字机音效 URL
+            const mechanicalKeySoundUrl = 'https://home.azad.asia/cs/001.mp3';
+            const typeWriterSoundUrl = 'https://home.azad.asia/cs/002.mp3'; // 打字机音效 URL
             const audioPools = [];
             const typeAudioPools = []; // 打字机音效缓存池
 
@@ -697,5 +698,8 @@
             }, { once: true });
         });
     </script>
+<footer><center>
+            <small>© 2025&nbsp; <a target="_blank" href="https://other.azad.asia" style="text-decoration: none;">实验室 - Azad</a>. &nbsp;<a target="_blank" href="https://home.azad.asia/dashang" style="text-decoration: none; ">打赏</a>.</small></center>
+        </footer>
 </body>
 </html>
