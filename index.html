@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>虚拟键盘盲打练习</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 样式保持不变 */
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --key-bg: #2a2a2a;
+            --key-text: #ffffff;
+            --key-border: #333333;
+            --key-shadow: #0a0a0a;
+            --key-active: #3a3a3a;
+            --text-color: #ffffff;
+            --accent-color: #4f46e5;
+            --accent-hover: #4338ca;
+            --display-bg: #0a0a0a;
+            --border-radius: 12px;
+            --key-radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 24px;
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-weight: 700;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--accent-color), #9c27b0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .display-area {
+            background-color: var(--display-bg);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            margin-bottom: 24px;
+            min-height: 150px;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        .typed-text {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: var(--text-color);
+            display: inline; /* 保持行内 */
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 20px;
+            background-color: var(--accent-color);
+            animation: blink 1s infinite;
+            margin-left: 2px;
+            border-radius: 1px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .keyboard {
+            display: grid;
+            grid-template-rows: repeat(5, 60px);
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            gap: 10px;
+        }
+
+        .key {
+            background-color: var(--key-bg);
+            color: var(--key-text);
+            border: 1px solid var(--key-border);
+            border-radius: var(--key-radius);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 4px var(--key-shadow);
+            position: relative;
+            transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+        }
+
+        .key:hover {
+            background-color: var(--key-active);
+            transform: translateY(-2px);
+        }
+
+        .key:active, .key.active {
+            box-shadow: 0 0 var(--key-shadow);
+            transform: translateY(4px);
+            background-color: var(--key-active);
+        }
+
+        .key span {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .key .sub {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 10px;
+            opacity: 0.7;
+        }
+
+        .key-backspace { grid-column: span 2; }
+        .key-tab { grid-column: span 1.5; }
+        .key-caps { grid-column: span 1.8; }
+        .key-enter { grid-column: span 2.2; }
+        .key-shift { grid-column: span 2.5; }
+        .key-space { grid-column: span 6; }
+        .key-ctrl, .key-alt, .key-win { grid-column: span 1.5; }
+
+        .settings {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .settings-group {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: var(--key-radius);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .settings-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+        }
+
+        .settings-title i {
+            color: var(--accent-color);
+        }
+
+        select {
+            background-color: var(--key-bg);
+            color: var(--key-text);
+            border: 1px solid var(--key-border);
+            border-radius: var(--key-radius);
+            padding: 10px 12px;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 36px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: var(--key-radius);
+            padding: 10px 16px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        @media (max-width: 768px) {
+            .row {
+                grid-template-columns: repeat(10, 1fr);
+            }
+        
+            .key span {
+                font-size: 14px;
+            }
+        
+            .settings {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .row {
+                grid-template-columns: repeat(7, 1fr);
+                gap: 6px;
+            }
+        
+            .key span {
+                font-size: 12px;
+            }
+        
+            .header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>键盘盲打练习</h1>
+            <p>点击按键或使用实体键盘进行练习</p>
+        </div>
+
+        <div class="card">
+            <div class="display-area">
+                <div class="typed-text"></div>
+                <span class="cursor"></span>
+            </div>
+
+            <div class="keyboard">
+                <div class="row">
+                    <div class="key" data-key="Backquote"><span class="sub">~</span><span>`</span></div>
+                    <div class="key" data-key="Digit1"><span class="sub">!</span><span>1</span></div>
+                    <div class="key" data-key="Digit2"><span class="sub">@</span><span>2</span></div>
+                    <div class="key" data-key="Digit3"><span class="sub">#</span><span>3</span></div>
+                    <div class="key" data-key="Digit4"><span class="sub">$</span><span>4</span></div>
+                    <div class="key" data-key="Digit5"><span class="sub">%</span><span>5</span></div>
+                    <div class="key" data-key="Digit6"><span class="sub">^</span><span>6</span></div>
+                    <div class="key" data-key="Digit7"><span class="sub">&</span><span>7</span></div>
+                    <div class="key" data-key="Digit8"><span class="sub">*</span><span>8</span></div>
+                    <div class="key" data-key="Digit9"><span class="sub">(</span><span>9</span></div>
+                    <div class="key" data-key="Digit0"><span class="sub">)</span><span>0</span></div>
+                    <div class="key" data-key="Minus"><span class="sub">_</span><span>-</span></div>
+                    <div class="key" data-key="Equal"><span class="sub">+</span><span>=</span></div>
+                    <div class="key key-backspace" data-key="Backspace"><span>⌫</span></div>
+                </div>
+
+                <div class="row">
+                    <div class="key key-tab" data-key="Tab"><span>⇥</span></div>
+                    <div class="key" data-key="KeyQ"><span>Q</span></div>
+                    <div class="key" data-key="KeyW"><span>W</span></div>
+                    <div class="key" data-key="KeyE"><span>E</span></div>
+                    <div class="key" data-key="KeyR"><span>R</span></div>
+                    <div class="key" data-key="KeyT"><span>T</span></div>
+                    <div class="key" data-key="KeyY"><span>Y</span></div>
+                    <div class="key" data-key="KeyU"><span>U</span></div>
+                    <div class="key" data-key="KeyI"><span>I</span></div>
+                    <div class="key" data-key="KeyO"><span>O</span></div>
+                    <div class="key" data-key="KeyP"><span>P</span></div>
+                    <div class="key" data-key="BracketLeft"><span class="sub">{</span><span>[</span></div>
+                    <div class="key" data-key="BracketRight"><span class="sub">}</span><span>]</span></div>
+                    <div class="key" data-key="Backslash"><span class="sub">|</span><span>\</span></div>
+                </div>
+
+                <div class="row">
+                    <div class="key key-caps" data-key="CapsLock"><span>Caps</span></div>
+                    <div class="key" data-key="KeyA"><span>A</span></div>
+                    <div class="key" data-key="KeyS"><span>S</span></div>
+                    <div class="key" data-key="KeyD"><span>D</span></div>
+                    <div class="key" data-key="KeyF"><span>F</span></div>
+                    <div class="key" data-key="KeyG"><span>G</span></div>
+                    <div class="key" data-key="KeyH"><span>H</span></div>
+                    <div class="key" data-key="KeyJ"><span>J</span></div>
+                    <div class="key" data-key="KeyK"><span>K</span></div>
+                    <div class="key" data-key="KeyL"><span>L</span></div>
+                    <div class="key" data-key="Semicolon"><span class="sub">:</span><span>;</span></div>
+                    <div class="key" data-key="Quote"><span class="sub">"</span><span>'</span></div>
+                    <div class="key key-enter" data-key="Enter"><span>↵</span></div>
+                </div>
+
+                <div class="row">
+                    <div class="key key-shift" data-key="ShiftLeft"><span>⇧</span></div>
+                    <div class="key" data-key="KeyZ"><span>Z</span></div>
+                    <div class="key" data-key="KeyX"><span>X</span></div>
+                    <div class="key" data-key="KeyC"><span>C</span></div>
+                    <div class="key" data-key="KeyV"><span>V</span></div>
+                    <div class="key" data-key="KeyB"><span>B</span></div>
+                    <div class="key" data-key="KeyN"><span>N</span></div>
+                    <div class="key" data-key="KeyM"><span>M</span></div>
+                    <div class="key" data-key="Comma"><span class="sub"><</span><span>,</span></div>
+                    <div class="key" data-key="Period"><span class="sub">></span><span>.</span></div>
+                    <div class="key" data-key="Slash"><span class="sub">?</span><span>/</span></div>
+                    <div class="key key-shift" data-key="ShiftRight"><span>⇧</span></div>
+                </div>
+
+                <div class="row">
+                    <div class="key key-ctrl" data-key="ControlLeft"><span>Ctrl</span></div>
+                    <div class="key key-win" data-key="MetaLeft"><span>⌘</span></div>
+                    <div class="key key-alt" data-key="AltLeft"><span>Alt</span></div>
+                    <div class="key key-space" data-key="Space"><span></span></div>
+                    <div class="key key-alt" data-key="AltRight"><span>Alt</span></div>
+                    <div class="key key-win" data-key="MetaRight"><span>⌘</span></div>
+                    <div class="key key-ctrl" data-key="ControlRight"><span>Ctrl</span></div>
+                </div>
+            </div>
+
+            <div class="settings">
+                <div class="settings-group">
+                    <div class="settings-title">
+                        <i class="fas fa-volume-high"></i> 音效选择
+                    </div>
+                    <select id="sound-type-select">
+                        <option value="none">无音效</option>
+                        <option value="mechanical">机械键盘音效</option>
+                        <option value="typewriter">打字机音效</option>
+                    </select>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-title">
+                        <i class="fas fa-palette"></i> 主题选择
+                    </div>
+                    <select id="theme-select">
+                        <option value="dark">暗黑主题</option>
+                        <option value="light">明亮主题</option>
+                        <option value="blue">蓝色主题</option>
+                        <option value="green">绿色主题</option>
+                    </select>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-title">
+                        <i class="fas fa-eraser"></i> 操作
+                    </div>
+                    <button id="clear-btn">
+                        <i class="fas fa-trash-can"></i> 清空文本
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const keyboard = document.querySelector('.keyboard');
+            const typedText = document.querySelector('.typed-text');
+            const themeSelect = document.getElementById('theme-select');
+            const clearBtn = document.getElementById('clear-btn');
+            const soundTypeSelect = document.getElementById('sound-type-select'); // 获取音效选择下拉框
+
+            let capsLockOn = false;
+            let shiftPressed = false;
+
+            // 音效 URL 与缓存
+            const mechanicalKeySoundUrl = 'https://home.azad.asia/cs/001.mp3';
+            const typeWriterSoundUrl = 'https://home.azad.asia/cs/002.mp3'; // 打字机音效 URL
+            const audioPools = [];
+            const typeAudioPools = []; // 打字机音效缓存池
+
+            // 创建多个机械键盘音频实例用于轮流播放
+            for (let i = 0; i < 8; i++) {
+                const audio = new Audio(mechanicalKeySoundUrl);
+                audio.volume = 0.5;
+                audio.load();
+                audioPools.push(audio);
+            }
+
+            // 创建多个打字机音频实例用于轮流播放
+            for (let i = 0; i < 2; i++) {
+                const audio = new Audio(typeWriterSoundUrl);
+                audio.volume = 0.3; // 调整打字机音效的音量
+                audio.load();
+                typeAudioPools.push(audio);
+            }
+
+            let audioIndex = 0;
+            let typeAudioIndex = 0;
+
+            // 播放机械键盘音效
+            function playKeySound() {
+                const audio = audioPools[audioIndex];
+
+                // 重置和播放
+                audio.pause();
+                audio.currentTime = 0;
+
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log('播放音效出错:', error);
+                    });
+                }
+
+                // 更新索引，轮流使用
+                audioIndex = (audioIndex + 1) % audioPools.length;
+            }
+
+            // 播放打字机音效
+            function playTypeWriterSound() {
+                const audio = typeAudioPools[typeAudioIndex];
+
+                // 重置和播放
+                audio.pause();
+                audio.currentTime = 0;
+
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log('播放打字机音效出错:', error);
+                    });
+                }
+
+                // 更新索引，轮流使用
+                typeAudioIndex = (typeAudioIndex + 1) % typeAudioPools.length;
+            }
+
+            const themes = {
+                dark: {
+                    '--bg-color': '#121212',
+                    '--card-bg': '#1e1e1e',
+                    '--key-bg': '#2a2a2a',
+                    '--key-text': '#ffffff',
+                    '--key-border': '#333333',
+                    '--key-shadow': '#0a0a0a',
+                    '--key-active': '#3a3a3a',
+                    '--text-color': '#ffffff',
+                    '--accent-color': '#4f46e5',
+                    '--accent-hover': '#4338ca',
+                    '--display-bg': '#0a0a0a',
+                },
+                light: {
+                    '--bg-color': '#f5f5f5',
+                    '--card-bg': '#ffffff',
+                    '--key-bg': '#f0f0f0',
+                    '--key-text': '#333333',
+                    '--key-border': '#e0e0e0',
+                    '--key-shadow': '#cccccc',
+                    '--key-active': '#e6e6e6',
+                    '--text-color': '#333333',
+                    '--accent-color': '#4f46e5',
+                    '--accent-hover': '#4338ca',
+                    '--display-bg': '#ffffff',
+                },
+                blue: {
+                    '--bg-color': '#0a1929',
+                    '--card-bg': '#102a43',
+                    '--key-bg': '#1a3d5c',
+                    '--key-text': '#ffffff',
+                    '--key-border': '#234b6e',
+                    '--key-shadow': '#071521',
+                    '--key-active': '#2c5682',
+                    '--text-color': '#ffffff',
+                    '--accent-color': '#3b82f6',
+                    '--accent-hover': '#2563eb',
+                    '--display-bg': '#071521',
+                },
+                green: {
+                    '--bg-color': '#0c1f17',
+                    '--card-bg': '#113123',
+                    '--key-bg': '#1a4734',
+                    '--key-text': '#ffffff',
+                    '--key-border': '#265c45',
+                    '--key-shadow': '#071511',
+                    '--key-active': '#2a6c50',
+                    '--text-color': '#ffffff',
+                    '--accent-color': '#10b981',
+                    '--accent-hover': '#059669',
+                    '--display-bg': '#071511',
+                }
+            };
+
+            const keyMap = {
+                'Backquote': { normal: '`', shift: '~' },
+                'Digit1': { normal: '1', shift: '!' },
+                'Digit2': { normal: '2', shift: '@' },
+                'Digit3': { normal: '3', shift: '#' },
+                'Digit4': { normal: '4', shift: '$' },
+                'Digit5': { normal: '5', shift: '%' },
+                'Digit6': { normal: '6', shift: '^' },
+                'Digit7': { normal: '7', shift: '&' },
+                'Digit8': { normal: '8', shift: '*' },
+                'Digit9': { normal: '9', shift: '(' },
+                'Digit0': { normal: '0', shift: ')' },
+                'Minus': { normal: '-', shift: '_' },
+                'Equal': { normal: '=', shift: '+' },
+                'BracketLeft': { normal: '[', shift: '{' },
+                'BracketRight': { normal: ']', shift: '}' },
+                'Backslash': { normal: '\\', shift: '|' },
+                'Semicolon': { normal: ';', shift: ':' },
+                'Quote': { normal: "'", shift: '"' },
+                'Comma': { normal: ',', shift: '<' },
+                'Period': { normal: '.', shift: '>' },
+                'Slash': { normal: '/', shift: '?' },
+                'Space': { normal: ' ', shift: ' ' }
+            };
+
+            for (let i = 65; i <= 90; i++) {
+                const letter = String.fromCharCode(i);
+                keyMap[`Key${letter}`] = {
+                    normal: letter.toLowerCase(),
+                    shift: letter.toUpperCase()
+                };
+            }
+
+            keyboard.addEventListener('mousedown', function(e) {
+                const key = e.target.closest('.key');
+                if (!key) return;
+
+                handleKeyPress(key.dataset.key);
+                key.classList.add('active');
+            });
+
+            document.addEventListener('mouseup', function() {
+                const activeKeys = document.querySelectorAll('.key.active');
+                activeKeys.forEach(key => key.classList.remove('active'));
+            });
+
+            document.addEventListener('keydown', function(e) {
+                const keyElement = document.querySelector(`.key[data-key="${e.code}"]`);
+                if (keyElement) {
+                    keyElement.classList.add('active');
+
+                    if (e.code === 'CapsLock') {
+                        capsLockOn = !capsLockOn;
+                        if (capsLockOn) {
+                            keyElement.style.backgroundColor = 'var(--key-active)';
+                        } else {
+                            keyElement.style.backgroundColor = '';
+                        }
+                    } else if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+                        shiftPressed = true;
+                    } else {
+                        handleKeyPress(e.code);
+                    }
+
+                    if (e.code !== 'F5' && e.code !== 'F12') {
+                        e.preventDefault();
+                    }
+                }
+            });
+
+            document.addEventListener('keyup', function(e) {
+                const keyElement = document.querySelector(`.key[data-key="${e.code}"]`);
+                if (keyElement && e.code !== 'CapsLock') {
+                    keyElement.classList.remove('active');
+
+                    if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+                        shiftPressed = false;
+                    }
+                }
+            });
+
+            function handleKeyPress(code) {
+                const selectedSoundType = soundTypeSelect.value;
+
+                if (selectedSoundType === 'mechanical') {
+                    playKeySound();
+                } else if (selectedSoundType === 'typewriter') {
+                    playTypeWriterSound();
+                }
+
+                // 即使音效选择为无，也执文本内容变更
+                if (code === 'Backspace') {
+                    typedText.textContent = typedText.textContent.slice(0, -1);
+                    return;
+                } else if (code === 'Enter') {
+                    typedText.textContent += '\n';
+                    return;
+                } else if (code === 'Tab') {
+                    typedText.textContent += '    ';
+                    return;
+                } else if (code.startsWith('Shift') || code.startsWith('Control') || 
+                           code.startsWith('Alt') || code.startsWith('Meta') || 
+                           code === 'CapsLock') {
+                    return;
+                }
+
+                if (keyMap[code]) {
+                    const useShift = shiftPressed !== capsLockOn; // XOR
+                    const char = useShift ? keyMap[code].shift : keyMap[code].normal;
+                    typedText.textContent += char;
+
+                    // 让光标跟随到文本末尾
+                    moveCursorToEnd();
+                }
+            }
+
+            function moveCursorToEnd() {
+                const cursor = document.querySelector('.cursor');
+                const typedTextElement = document.querySelector('.typed-text');
+                cursor.style.display = 'inline'; // 显示光标
+
+                // 移动光标位置到文本末尾
+                typedTextElement.appendChild(cursor);
+            }
+
+            function setTheme(themeName) {
+                const theme = themes[themeName];
+                for (const [property, value] of Object.entries(theme)) {
+                    document.documentElement.style.setProperty(property, value);
+                }
+            }
+
+            clearBtn.addEventListener('click', function() {
+                typedText.textContent = '';
+                moveCursorToEnd(); // 清空文本后光标位置设置到末尾
+            });
+
+            themeSelect.addEventListener('change', function() {
+                const selectedTheme = this.value;
+                setTheme(selectedTheme);
+                localStorage.setItem('keyboardTheme', selectedTheme);
+            });
+
+            function loadSettings() {
+                const savedTheme = localStorage.getItem('keyboardTheme');
+                if (savedTheme && themes[savedTheme]) {
+                    themeSelect.value = savedTheme;
+                    setTheme(savedTheme);
+                } else {
+                    setTheme('dark');
+                }
+            }
+
+            loadSettings();
+
+            window.addEventListener('click', function() {
+                audioPools.forEach(audio => {
+                    audio.load();
+                    const playPromise = audio.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            audio.pause();
+                            audio.currentTime = 0;
+                        }).catch(error => {
+                            console.log('预加载音效出错:', error);
+                        });
+                    }
+                });
+            }, { once: true });
+        });
+    </script>
+</body>
+</html>
